@@ -204,7 +204,7 @@ module cpu(
             idu_inc_dec: 0,
             idu_pair: IDU_NONE,
             mem_wr: 0,
-            use_reg_move: 1,
+            use_reg_move: 0,
             end_instr: 1,
             cycles: 4'd2
         };
@@ -317,7 +317,7 @@ module cpu(
             idu_inc_dec: 0,
             idu_pair: IDU_NONE,
             mem_wr: 0,
-            use_reg_move: 1,
+            use_reg_move: 0,
             end_instr: 1,
             cycles: 4'd2
         };
@@ -369,7 +369,7 @@ module cpu(
             next_state: FETCH,
             addr_src: ADDR_NONE,
             reg_src: REG_D,
-            reg_dst: REG_B,
+            reg_dst: REG_D,
             use_idu: 0,
             idu_inc_dec: 0,
             idu_pair: IDU_NONE,
@@ -430,7 +430,7 @@ module cpu(
             idu_inc_dec: 0,
             idu_pair: IDU_NONE,
             mem_wr: 0,
-            use_reg_move: 1,
+            use_reg_move: 0,
             end_instr: 1,
             cycles: 4'd2
         };
@@ -543,7 +543,7 @@ module cpu(
             idu_inc_dec: 0,
             idu_pair: IDU_NONE,
             mem_wr: 0,
-            use_reg_move: 1,
+            use_reg_move: 0,
             end_instr: 1,
             cycles: 4'd2
         };
@@ -655,7 +655,7 @@ module cpu(
             idu_inc_dec: 0,
             idu_pair: IDU_NONE,
             mem_wr: 0,
-            use_reg_move: 1,
+            use_reg_move: 0,
             end_instr: 1,
             cycles: 4'd2
         };
@@ -768,7 +768,7 @@ module cpu(
             idu_inc_dec: 0,
             idu_pair: IDU_NONE,
             mem_wr: 0,
-            use_reg_move: 1,
+            use_reg_move: 0,
             end_instr: 1,
             cycles: 4'd2
         };
@@ -881,7 +881,7 @@ module cpu(
             idu_inc_dec: 0,
             idu_pair: IDU_NONE,
             mem_wr: 0,
-            use_reg_move: 1,
+            use_reg_move: 0,
             end_instr: 1,
             cycles: 4'd2
         };
@@ -1095,7 +1095,7 @@ module cpu(
             idu_inc_dec = 1'b1;
             idu_data_in = pc;
         end
-        if (curr_entry.use_idu) begin
+        else if (curr_entry.use_idu) begin
             idu_inc_dec = curr_entry.idu_inc_dec;
             unique case (curr_entry.idu_pair) 
                 IDU_BC: idu_data_in = {b, c};
