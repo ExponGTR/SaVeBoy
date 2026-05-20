@@ -1,4 +1,6 @@
 `timescale 1ns / 1ps
+
+import gb_pkg::*;
 module cpu(
     input logic clk,
     input logic arstn,
@@ -31,64 +33,21 @@ module cpu(
         .data_out(idu_data_out)
     );
 
-    typedef enum logic [3:0] {
-        ADDR_NONE,
-        ADDR_BC,
-        ADDR_DE,
-        ADDR_HL,
-        ADDR_SP,
-        ADDR_PC,
-        ADDR_WZ
-    } addr_src_e;
+    alu u_alu(
+        .a(alu_a),
+        .b(alu_b),
+        .c_in(f[4]),
+        .op(alu_op),
+        .res(alu_res),
+        .flag_z(),
+        .flag_n(),
+        .flag_h(),
+        .flag_c()
+    );
 
-    typedef enum logic [3:0] {
-        REG_NONE,
-        REG_A,
-        REG_F,
-        REG_B,
-        REG_C,
-        REG_D,
-        REG_E,
-        REG_H,
-        REG_L
-    } reg_e;
-
-    typedef enum logic [3:0] {
-    IDU_NONE,
-    IDU_BC,
-    IDU_DE,
-    IDU_HL,
-    IDU_SP,
-    IDU_PC,
-    IDU_WZ
-    } idu_pair_e;
-
-    typedef enum logic [2:0] {
-        RESET,
-        FETCH,
-        MEM_RD,
-        MEM_WR,
-        INTERNAL,
-        PREF_CB,
-        HALT_STATE
-    } state_e;
     state_e state, next_state;
     logic [1:0] t_state;
     logic [3:0] m_cycle;
-
-    typedef struct packed {
-        state_e next_state;
-        addr_src_e addr_src;
-        reg_e reg_src;
-        reg_e reg_dst;
-        logic mem_wr;
-        logic use_reg_move;
-        logic use_idu;
-        logic idu_inc_dec;
-        idu_pair_e idu_pair;
-        logic end_instr;
-        logic [3:0] cycles;
-    } ucode_entry_t;
     ucode_entry_t curr_entry;
 
     // microcode table
@@ -106,6 +65,10 @@ module cpu(
                 use_idu: 0,
                 idu_inc_dec: 0,
                 idu_pair: IDU_NONE,
+                use_alu: 0,
+                alu_op: ALU_NONE,
+                alu_src_sel: 0,
+                flags_wr: 0,
                 end_instr: 1,
                 cycles: 4'd1
             };
@@ -122,6 +85,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -136,6 +103,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -150,6 +121,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -164,6 +139,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -178,6 +157,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -192,6 +175,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -206,6 +193,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 0,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd2
         };
@@ -220,6 +211,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -235,6 +230,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -249,6 +248,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -263,6 +266,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -277,6 +284,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -291,6 +302,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -305,6 +320,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -319,6 +338,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 0,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd2
         };
@@ -333,6 +356,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -348,6 +375,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -362,6 +393,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -376,6 +411,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -390,6 +429,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -404,6 +447,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -418,6 +465,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -432,6 +483,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 0,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd2
         };
@@ -446,6 +501,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -461,6 +520,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -475,6 +538,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -489,6 +556,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -503,6 +574,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -517,6 +592,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -531,6 +610,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -545,6 +628,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 0,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd2
         };
@@ -559,6 +646,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -573,6 +664,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -587,6 +682,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -601,6 +700,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -615,6 +718,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -629,6 +736,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -643,6 +754,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -657,6 +772,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 0,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd2
         };
@@ -671,6 +790,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -686,6 +809,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -700,6 +827,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -714,6 +845,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -728,6 +863,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -742,6 +881,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -756,6 +899,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -770,6 +917,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 0,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd2
         };
@@ -784,6 +935,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -799,6 +954,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -813,6 +972,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -827,6 +990,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -841,6 +1008,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -855,6 +1026,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -869,6 +1044,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
@@ -883,6 +1062,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 0,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd2
         };
@@ -897,6 +1080,10 @@ module cpu(
             idu_pair: IDU_NONE,
             mem_wr: 0,
             use_reg_move: 1,
+            use_alu: 0,
+            alu_op: ALU_NONE,
+            alu_src_sel: 0,
+            flags_wr: 0,
             end_instr: 1,
             cycles: 4'd1
         };
