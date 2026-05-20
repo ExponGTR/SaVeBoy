@@ -1,3 +1,4 @@
+`timescale 1ns / 1ps
 module idu(
     input logic [15:0] data_in, // pc, sp or wz
     input logic inc_dec, // 1 = inc, 0 = dec

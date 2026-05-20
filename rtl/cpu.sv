@@ -1,3 +1,4 @@
+`timescale 1ns / 1ps
 module cpu(
     input logic clk,
     input logic arstn,
@@ -908,6 +909,14 @@ module cpu(
             // stack ptr is reset to $FFFE
             pc <= 16'h0100;
             sp <= 16'hfffe;
+            a <= 8'h00;
+            f <= 8'h00;
+            b <= 8'h00;
+            c <= 8'h00;
+            d <= 8'h00;
+            e <= 8'h00;
+            h <= 8'h00;
+            l <= 8'h00;
             ir <= 8'h00;
             t_state <= 2'd0;
             m_cycle <= 4'd0;
@@ -1076,7 +1085,7 @@ module cpu(
         next_state = state;
         if (t_state == 2'd3) begin
             unique case (state)
-                FETCH: next_state = curr_entry.next_state;
+                FETCH: next_state = ucode_table[data_in].next_state;
                 MEM_RD,
                 MEM_WR,
                 INTERNAL: next_state = curr_entry.end_instr ? FETCH : curr_entry.next_state;
@@ -1090,8 +1099,8 @@ module cpu(
         idu_inc_dec = 1'b0;
         idu_data_in = 16'h0000;
 
-        // increment pc during fetch (T3)
-        if (state == FETCH && t_state == 2'd2) begin
+        // increment pc after fetch (T4)
+        if (state == FETCH && t_state == 2'd3) begin
             idu_inc_dec = 1'b1;
             idu_data_in = pc;
         end
