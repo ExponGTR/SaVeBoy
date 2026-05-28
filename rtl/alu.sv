@@ -4,6 +4,7 @@ module alu(
     input logic [7:0] a,
     input logic [7:0] b,
     input logic c_in,
+    input logic [7:0] f,
     input alu_op_e op,
     output logic [7:0] res,
     output logic flag_z,
@@ -15,6 +16,13 @@ module alu(
     logic [8:0] add_sub_res;
     logic [4:0] half_add_sub_res;
     always_comb begin
+        res = a;
+        add_sub_res = 9'd0;
+        half_add_sub_res = 5'd0;
+        flag_z = f[7];
+        flag_n = f[6];
+        flag_h = f[5];
+        flag_c = f[4];
         unique case (op)
             ADD: begin
                 add_sub_res = {1'b0, a} + {1'b0, b};
@@ -101,7 +109,7 @@ module alu(
                 // apparently, the carry flag is unaffected in inc and dec
             end
             DAA: begin
-                ; // todo
+                // todo
             end
             default: ;
         endcase
